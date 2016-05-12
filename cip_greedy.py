@@ -67,8 +67,7 @@ def solve(Xs_info, C, aa, f_cost, epsilon):
     print 'z = {}, ys = {}'.format(z.value(), [y.value() for y in ys])
 
     # The subset S corresponding to i s.t. y_i = 1 is feasible
-    s0 = [x for x, y in zip(Xs_info.iterkeys(), ys) if y == 1]
-
+    s0 = [x for x, y in zip(Xs_info.iterkeys(), ys) if y.value() == 1]
     # new cost budget C(log log m + log 1/e)
     m = len(aa)
     C_relaxed = C * (math.log(math.log(m)) + math.log(1.0 / epsilon))
