@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import argparse
+import itertools
 
 import random
 
@@ -9,19 +10,15 @@ import scipy.stats as stats
 import cip_greedy
 import minimum_element
 
+
 OUTPUT_FILE = 'results.txt'
+
 
 def simulate(Xs_dist):
     return {x: rv.rvs() for x, rv in Xs_dist.iteritems()}
 
 
-def p(x):
-    def px(a):
-        return x.sf(a)
-    return px
-
-
-def clip(x, low, high): 
+def clip(x, low, high):
     return max(low, min(high, x))
 
 
@@ -32,14 +29,18 @@ def do_uniform(C, n, m, sims):
         n: the number of random variables
         m: the number of elements taken on by the distributions
     """
-    with open(OUTPUT_FILE, 'w') as f: 
+    with open(OUTPUT_FILE, 'w') as f:
         ties = 0
         cip_victories = 0
         basic_victories = 0
         for _ in xrange(sims):
             Xs_info = {}
+            elements = range(0, 5 * m, 5)
             for i in xrange(n):
-                x = stats.randint(0, m + 1)
+                x = stats.rv_discrete(
+                    values=(elements,
+                            [1.0 / len(elements) for _ in xrange(len(elements))]))
+                # x = stats.randint(0, m + 1)
                 # x = stats.geom(1. / 17)
                 # x = stats.poisson(0.6)
                 c = random.randint(1, C / (n / 2))
@@ -48,10 +49,10 @@ def do_uniform(C, n, m, sims):
             f_cost = lambda S: len(S) + 1
 
             Xs_dist = {k: d for k, (d, _, _) in Xs_info.iteritems()}
-            xs = simulate(Xs_dist) 
+            xs = simulate(Xs_dist)
 
-            Xs_cip_info = {k: (c, p) for k, (_, c, p) in Xs_info.iteritems()} 
-            cip_result = cip_greedy.solve(Xs_cip_info, C, range(m), f_cost, 0.01) 
+            Xs_cip_info = {k: (c, p) for k, (_, c, p) in Xs_info.iteritems()}
+            cip_result = cip_greedy.solve(Xs_cip_info, C, elements, f_cost, 0.01)
             cip_cost = sum(map(lambda x: xs[x], cip_result))
             print 'cip =', cip_cost,
 
@@ -59,7 +60,7 @@ def do_uniform(C, n, m, sims):
             basic_result = minimum_element.minimum_element(X_cost, C, f_cost)
             basic_cost = sum(map(lambda x: xs[x], basic_result))
             print ', basic =', basic_cost
-           
+
             if cip_cost < basic_cost:
                 f.write('cip\n')
                 cip_victories += 1
@@ -96,9 +97,9 @@ def main():
     OUTPUT_FILE = args.output_file
 
     do_uniform(
-            args.cost_budget, 
-            args.random_variables, 
-            args.distribution_elts, 
+            args.cost_budget,
+            args.random_variables,
+            args.distribution_elts,
             args.simulations)
 
 
