@@ -3,6 +3,7 @@ import sys
 import argparse
 import itertools
 
+import math
 import random
 
 import scipy.stats as stats
@@ -35,7 +36,7 @@ def do_uniform(C, n, m, sims):
         basic_victories = 0
         for _ in xrange(sims):
             Xs_info = {}
-            elements = range(0, 5 * m, 5)
+            elements = range(0, 500 * int(math.pow(m, 2)), 500)
             for i in xrange(n):
                 x = stats.rv_discrete(
                     values=(elements,
